@@ -1,2 +1,0 @@
-# aktaiportal
-AKT AI Portal
