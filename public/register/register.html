@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ro‘yxatdan o‘tish</title>
+    <style>
+        body {
+            background: linear-gradient(to right, #4facfe, #00f2fe);
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background: #fff;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            width: 300px;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 10px;
+            border: 1px solid #ccc;
+        }
+        .eye {
+            position: relative;
+            float: right;
+            margin-top: -35px;
+            margin-right: 10px;
+            cursor: pointer;
+            font-size: 20px;
+            transition: transform 0.4s ease;
+        }
+        .eye.animate {
+            animation: blink 0.4s;
+        }
+        @keyframes blink {
+            0% { transform: scale(1) rotate(0deg); }
+            25% { transform: scale(1.2) rotate(20deg); }
+            50% { transform: scale(1.4) rotate(-20deg); }
+            75% { transform: scale(1.2) rotate(10deg); }
+            100% { transform: scale(1) rotate(0deg); }
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background: #4facfe;
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #00c6ff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Ro‘yxatdan o‘tish</h2>
+        <form id="register-form">
+            <input type="text" id="username" placeholder="Username" required>
+            <input type="email" id="email" placeholder="Email" required>
+            <div>
+                <input type="password" id="reg-password" placeholder="Password" required>
+                <span class="eye" onclick="togglePassword('reg-password', this)">👁️</span>
+            </div>
+            <button type="submit">Ro‘yxatdan o‘tish</button>
+        </form>
+    </div>
+
+    <script>
+        function togglePassword(id, eye) {
+            const input = document.getElementById(id);
+            eye.classList.add('animate');
+            setTimeout(() => eye.classList.remove('animate'), 400);
+            if (input.type === "password") {
+                input.type = "text";
+                eye.textContent = "🙈";
+            } else {
+                input.type = "password";
+                eye.textContent = "👁️";
+            }
+        }
+
+        // Form submit handler
+        document.getElementById('register-form').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('reg-password').value;
+
+            // Sending the data to server (can be done through an API or directly to backend)
+            const response = await fetch('/send-login-data', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username, email, password })
+            });
+
+            const result = await response.json();
+            if (result.success) {
+                alert('Ro‘yxatdan o‘tish muvaffaqiyatli yakunlandi!');
+                window.location.href = '/login';  // Redirect to login page after successful registration
+            } else {
+                alert('Ro‘yxatdan o‘tishda xato yuz berdi.');
+            }
+        });
+    </script>
+</body>
+</html>
