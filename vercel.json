@@ -1,9 +1,15 @@
-
 {
+  "version": 2,
   "rewrites": [
     { "source": "/", "destination": "/index.html" },
     { "source": "/register", "destination": "/register/register.html" },
     { "source": "/register/enter", "destination": "/register/enter.html" },
     { "source": "/register/forgot", "destination": "/register/forgot.html" }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/$1.js"
+    }
   ]
 }
