@@ -3,110 +3,137 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ro‘yxatdan o‘tish</title>
+    <title>Ro'yxatdan o'tish — AKT AI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
-            background: linear-gradient(to right, #4facfe, #00f2fe);
-            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            font-family: 'Segoe UI', sans-serif;
         }
-        .container {
-            background: #fff;
+        .card {
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 12px;
             padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-            width: 300px;
-        }
-        input {
+            max-width: 400px;
             width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            border-radius: 10px;
-            border: 1px solid #ccc;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        .card h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .form-control {
+            border-radius: 6px;
+        }
+        .btn-primary {
+            background: #ff7e5f;
+            border: none;
+            color: #fff;
+        }
+        .btn-primary:hover {
+            background: #eb6750;
+        }
+        .links a {
+            color: #ff7e5f;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+        .links a:hover {
+            text-decoration: underline;
         }
         .eye {
+            cursor: pointer;
+            user-select: none;
+            font-size: 1.2rem;
+            margin-left: -30px;
+            position: absolute;
+            right: 10px;
+            top: 35px;
+        }
+        .position-relative {
             position: relative;
-            float: right;
-            margin-top: -35px;
-            margin-right: 10px;
-            cursor: pointer;
-            font-size: 20px;
-            transition: transform 0.4s ease;
-        }
-        .eye.animate {
-            animation: blink 0.4s;
-        }
-        @keyframes blink {
-            0% { transform: scale(1) rotate(0deg); }
-            25% { transform: scale(1.2) rotate(20deg); }
-            50% { transform: scale(1.4) rotate(-20deg); }
-            75% { transform: scale(1.2) rotate(10deg); }
-            100% { transform: scale(1) rotate(0deg); }
-        }
-        button {
-            width: 100%;
-            padding: 10px;
-            background: #4facfe;
-            border: none;
-            border-radius: 10px;
-            color: #fff;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        button:hover {
-            background: #00c6ff;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h2>Ro‘yxatdan o‘tish</h2>
+
+    <div class="card">
+        <h2>Ro'yxatdan o'tish</h2>
         <form id="register-form">
-            <input type="text" id="username" placeholder="Username" required>
-            <input type="email" id="email" placeholder="Email" required>
-            <div>
-                <input type="password" id="reg-password" placeholder="Password" required>
-                <span class="eye" onclick="togglePassword('reg-password', this)">👁️</span>
+            <div class="mb-3 text-start">
+                <label for="username" class="form-label">Foydalanuvchi nomi</label>
+                <input type="text" id="username" class="form-control" placeholder="Foydalanuvchi nomingiz" required>
             </div>
-            <button type="submit">Ro‘yxatdan o‘tish</button>
+            <div class="mb-3 text-start">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" id="email" class="form-control" placeholder="you@example.com" required>
+            </div>
+            <div class="mb-3 text-start position-relative">
+                <label for="reg-password" class="form-label">Parol</label>
+                <input type="password" id="reg-password" class="form-control" placeholder="Parolingiz" required>
+                <span class="eye" id="toggleRegPassword">👁️</span>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Ro'yxatdan o'tish</button>
         </form>
+        <div class="links mt-3">
+            <a href="enter.html">Kirish sahifasiga qaytish</a>
+        </div>
     </div>
 
     <script>
-        function togglePassword(id, eye) {
-            const input = document.getElementById(id);
-            eye.classList.add('animate');
-            setTimeout(() => eye.classList.remove('animate'), 400);
-            if (input.type === "password") {
-                input.type = "text";
-                eye.textContent = "🙈";
+        // Ko'zcha tugmasi uchun funksiya
+        const toggleRegPassword = document.getElementById('toggleRegPassword');
+        toggleRegPassword.addEventListener('click', () => {
+            const passwordInput = document.getElementById('reg-password');
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleRegPassword.textContent = '🙈';
             } else {
-                input.type = "password";
-                eye.textContent = "👁️";
+                passwordInput.type = 'password';
+                toggleRegPassword.textContent = '👁️';
             }
-        }
+        });
 
+        // Formani yuborish
         document.getElementById('register-form').addEventListener('submit', async (event) => {
             event.preventDefault();
-            const username = document.getElementById('username').value;
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('reg-password').value;
 
-            const response = await fetch('/api/server', {  // TO‘G‘RI endpoint
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, email, password })
-            });
+            const username = document.getElementById('username').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('reg-password').value.trim();
 
-            const result = await response.json();
-            if (result.success) {
-                alert('Ro‘yxatdan o‘tish muvaffaqiyatli!');
-                window.location.href = 'enter.html';
-            } else {
-                alert('Xato: ' + result.message);
+            if (!username || !email || !password) {
+                alert('Barcha maydonlarni to‘ldiring!');
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:3000/send-login-data', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email, password })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Server javobida xatolik: ' + response.status);
+                }
+
+                const result = await response.json();
+                if (result.success) {
+                    alert('Ro‘yxatdan o‘tish muvaffaqiyatli!');
+                    window.location.href = 'enter.html';  // Kirish sahifasiga qaytadi
+                } else {
+                    alert('Xatolik: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Xatolik:', error);
+                alert('Serverga ulanib bo‘lmadi. Iltimos, qayta urinib ko‘ring.');
             }
         });
     </script>
