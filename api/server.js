@@ -1,44 +1,37 @@
-const express = require('express');
-const fs = require('fs');
-const cors = require('cors');
-const app = express();
-const port = 3000;
+// api/server.js
+import fs from 'fs';
+import path from 'path';
+import jwt from 'jsonwebtoken';
 
-app.use(cors());  // CORS muammosini hal qilish uchun
-app.use(express.json());  // JSON ma'lumotlarni qabul qilish uchun
+const USERS_FILE = path.resolve('api/users.json');
+const JWT_SECRET = 'my_secret_key_123'; // .env o‘rniga
 
-app.post('/send-login-data', (req, res) => {
-    const { username, email, password } = req.body;
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ message: 'POST usuli kerak' });
+  }
 
-    if (!username || !email || !password) {
-        return res.status(400).json({ success: false, message: 'Barcha maydonlar to‘ldirilishi shart!' });
-    }
+  const { username, email, password } = req.body;
 
-    fs.readFile('./api/users.json', 'utf8', (err, data) => {
-        if (err) {
-            console.error('Faylni o‘qishda xatolik:', err);
-            return res.status(500).json({ success: false, message: 'Server xatosi' });
-        }
+  if (!username || !email || !password) {
+    return res.status(400).json({ success: false, message: 'Barcha maydonlarni to‘ldiring' });
+  }
 
-        let users = [];
-        if (data) {
-            users = JSON.parse(data);
-        }
+  let users = [];
+  if (fs.existsSync(USERS_FILE)) {
+    const data = fs.readFileSync(USERS_FILE);
+    users = JSON.parse(data);
+  }
 
-        const newUser = { username, email, password };
-        users.push(newUser);
+  const existing = users.find(u => u.email === email);
+  if (existing) {
+    return res.status(409).json({ success: false, message: 'Bu email ro‘yxatdan o‘tgan' });
+  }
 
-        fs.writeFile('./api/users.json', JSON.stringify(users, null, 2), (err) => {
-            if (err) {
-                console.error('Faylga yozishda xatolik:', err);
-                return res.status(500).json({ success: false, message: 'Ma’lumot saqlanmadi' });
-            }
+  const token = jwt.sign({ username, email }, JWT_SECRET, { expiresIn: '1h' });
+  users.push({ username, email, password });
 
-            res.json({ success: true, message: 'Ro‘yxatdan o‘tish muvaffaqiyatli!' });
-        });
-    });
-});
+  fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
 
-app.listen(port, () => {
-    console.log(`Server http://localhost:${port} da ishlayapti`);
-});
+  res.status(200).json({ success: true, token });
+}
