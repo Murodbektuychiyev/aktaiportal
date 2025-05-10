@@ -1,15 +1,17 @@
 {
   "version": 2,
-  "rewrites": [
-    { "source": "/", "destination": "/index.html" },
-    { "source": "/register", "destination": "/register/register.html" },
-    { "source": "/register/enter", "destination": "/register/enter.html" },
-    { "source": "/register/forgot", "destination": "/register/forgot.html" }
+  "builds": [
+    { "src": "api/**/*.js", "use": "@vercel/node" },
+    {
+      "src": "**/*.{html,js,css,png,jpg,svg,ico,webp,woff,woff2,ttf,eot}",
+      "use": "@vercel/static"
+    }
   ],
   "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/$1.js"
-    }
-  ]
+    { "src": "/api/(.*)", "dest": "/api/$1.js" },
+    { "src": "/(.*)",      "dest": "/$1" }
+  ],
+  "env": {
+    "JWT_SECRET": "@jwt_secret"
+  }
 }
