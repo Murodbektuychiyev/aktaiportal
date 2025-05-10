@@ -1,49 +1,32 @@
 // api/enterserver.js
-import fs from 'fs/promises';
-import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';  // JWT token uchun modul
-const USERS_FILE = './api/users.json';  // Foydalanuvchilar ro'yxati joylashgan fayl
-const JWT_SECRET = 'your_jwt_secret_key';  // Maxfiy kalit
+import fs from 'fs';
+import path from 'path';
+import jwt from 'jsonwebtoken';
+
+const USERS_FILE = path.resolve('api/users.json');
+const JWT_SECRET = 'my_secret_key_123'; // .env o‘rniga
 
 export default async function handler(req, res) {
-    // Agar so'rov POST bo'lmasa, 405 xatosi qaytaramiz
-    if (req.method !== 'POST') {
-        return res.status(405).json({ message: 'Method Not Allowed' });
-    }
+  if (req.method !== 'POST') {
+    return res.status(405).json({ message: 'POST usuli kerak' });
+  }
 
-    const { email, password } = req.body;
+  const { email, password } = req.body;
 
-    try {
-        // USERS_FILE faylini o'qish
-        const data = await fs.readFile(USERS_FILE, 'utf-8');
-        const users = JSON.parse(data);  // JSON formatiga aylantirish
+  if (!email || !password) {
+    return res.status(400).json({ success: false, message: 'Email va parol kerak' });
+  }
 
-        // Foydalanuvchini email orqali qidiring
-        const user = users.find(u => u.email === email);
-        if (!user) {
-            return res.status(400).json({ success: false, message: 'Email topilmadi.' });
-        }
+  const data = fs.readFileSync(USERS_FILE);
+  const users = JSON.parse(data);
 
-        // Parolni tekshirish
-        const isMatch = await bcrypt.compare(password, user.passwordHash);
-        if (!isMatch) {
-            return res.status(401).json({ success: false, message: 'Email yoki parol xato.' });
-        }
+  const user = users.find(u => u.email === email && u.password === password);
 
-        // JWT token yaratish
-        const token = jwt.sign(
-            { email: user.email, username: user.username }, // Payload: foydalanuvchi ma'lumotlari
-            JWT_SECRET,  // Maxfiy kalit
-            { expiresIn: '1h' }  // Token 1 soatga amal qiladi
-        );
+  if (!user) {
+    return res.status(401).json({ success: false, message: 'Noto‘g‘ri email yoki parol' });
+  }
 
-        return res.status(200).json({
-            success: true,
-            message: 'Kirish muvaffaqiyatli!',
-            token: token  // Tokenni responsega yuborish
-        });
-    } catch (error) {
-        console.error(error);  // Xatolikni konsolga yozish
-        return res.status(500).json({ success: false, message: 'Server xatosi.' });
-    }
-            }
+  const token = jwt.sign({ email }, JWT_SECRET, { expiresIn: '1h' });
+
+  res.status(200).json({ success: true, token });
+}
