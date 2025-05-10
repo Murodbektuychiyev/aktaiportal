@@ -67,8 +67,8 @@
     document.getElementById('forgotForm').addEventListener('submit', async (event) => {
       event.preventDefault();
       const email = document.getElementById('forgotEmail').value;
-      
-      const response = await fetch('/api/send-reset-link', {  // Vercel endpointiga murojaat
+
+      const response = await fetch('/api/serverforgot', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email })
@@ -76,9 +76,9 @@
 
       const result = await response.json();
       if (result.success) {
-        alert('Tiklash linki sizning emailga yuborildi!');
+        alert('Tiklash linki yuborildi!');
       } else {
-        alert('Xato yuz berdi.');
+        alert('Xato: ' + result.message);
       }
     });
   </script>
