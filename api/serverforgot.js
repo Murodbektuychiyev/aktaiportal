@@ -1,16 +1,29 @@
-module.exports = async (req, res) => {
-    if (req.method === 'POST') {
-        const { email } = req.body;
+// api/serverforgot.js
+import fs from 'fs';
+import path from 'path';
 
-        if (!email) {
-            return res.status(400).json({ success: false, message: 'Email kiritilmadi' });
-        }
+const USERS_FILE = path.resolve('api/users.json');
 
-        // Ehtiyotkorlik uchun: shu yerga emailingizga real link yuborish kodini qo‘yishingiz mumkin.
-        console.log(`Tiklash linki yuborildi: ${email}`);
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ message: 'POST usuli kerak' });
+  }
 
-        return res.status(200).json({ success: true, message: 'Tiklash linki yuborildi' });
-    } else {
-        return res.status(405).json({ success: false, message: 'Faqat POST ruxsat etiladi' });
-    }
-};
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ success: false, message: 'Email kiriting' });
+  }
+
+  const data = fs.readFileSync(USERS_FILE);
+  const users = JSON.parse(data);
+
+  const user = users.find(u => u.email === email);
+
+  if (!user) {
+    return res.status(404).json({ success: false, message: 'Email topilmadi' });
+  }
+
+  // Bu yerda haqiqiy email jo‘natish yo‘q, shunchaki muvaffaqiyatli javob
+  res.status(200).json({ success: true, message: 'Tiklash linki yuborildi (simulyatsiya)' });
+}
