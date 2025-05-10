@@ -1,49 +1,49 @@
-const express = require('express');
-const bodyParser = require('body-parser');
-const bcrypt = require('bcrypt');  // Bcrypt parolni hash qilish uchun
-const app = express();
-const port = 3000;
+// api/enterserver.js
+import fs from 'fs/promises';
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';  // JWT token uchun modul
+const USERS_FILE = './api/users.json';  // Foydalanuvchilar ro'yxati joylashgan fayl
+const JWT_SECRET = 'your_jwt_secret_key';  // Maxfiy kalit
 
-// Middleware to parse JSON request bodies
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+export default async function handler(req, res) {
+    // Agar so'rov POST bo'lmasa, 405 xatosi qaytaramiz
+    if (req.method !== 'POST') {
+        return res.status(405).json({ message: 'Method Not Allowed' });
+    }
 
-// Serve static files (like HTML, CSS, JS)
-app.use(express.static('public'));
+    const { email, password } = req.body;
 
-// Dummy user data (you can replace it with a real database)
-const users = [
-  { email: 'user@example.com', passwordHash: '$2b$10$TmEVoXf9zBvv1sHk5J0YveWa2OQjAzpBpUwMBFZ2aOPXMeyuBOj9S' }  // Hashlangan parol: '123456'
-];
+    try {
+        // USERS_FILE faylini o'qish
+        const data = await fs.readFile(USERS_FILE, 'utf-8');
+        const users = JSON.parse(data);  // JSON formatiga aylantirish
 
-// Login route
-app.post('/login', (req, res) => {
-  const { email, password } = req.body;
+        // Foydalanuvchini email orqali qidiring
+        const user = users.find(u => u.email === email);
+        if (!user) {
+            return res.status(400).json({ success: false, message: 'Email topilmadi.' });
+        }
 
-  const user = users.find(user => user.email === email);
+        // Parolni tekshirish
+        const isMatch = await bcrypt.compare(password, user.passwordHash);
+        if (!isMatch) {
+            return res.status(401).json({ success: false, message: 'Email yoki parol xato.' });
+        }
 
-  if (user) {
-    // Compare the provided password with the stored hash
-    bcrypt.compare(password, user.passwordHash, (err, isMatch) => {
-      if (err) {
-        return res.json({ success: false, message: 'Xatolik yuz berdi.' });
-      }
+        // JWT token yaratish
+        const token = jwt.sign(
+            { email: user.email, username: user.username }, // Payload: foydalanuvchi ma'lumotlari
+            JWT_SECRET,  // Maxfiy kalit
+            { expiresIn: '1h' }  // Token 1 soatga amal qiladi
+        );
 
-      if (isMatch) {
-        // If login is successful
-        res.json({ success: true, message: 'Kirish muvaffaqiyatli!' });
-      } else {
-        // If login fails (wrong password)
-        res.json({ success: false, message: 'Email yoki parol xato!' });
-      }
-    });
-  } else {
-    // If no user is found
-    res.json({ success: false, message: 'Foydalanuvchi topilmadi.' });
-  }
-});
-
-// Start the server
-app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
-});
+        return res.status(200).json({
+            success: true,
+            message: 'Kirish muvaffaqiyatli!',
+            token: token  // Tokenni responsega yuborish
+        });
+    } catch (error) {
+        console.error(error);  // Xatolikni konsolga yozish
+        return res.status(500).json({ success: false, message: 'Server xatosi.' });
+    }
+            }
