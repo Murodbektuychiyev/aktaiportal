@@ -1,28 +1,44 @@
+const express = require('express');
 const fs = require('fs');
-const path = require('path');
+const cors = require('cors');
+const app = express();
+const port = 3000;
 
-module.exports = async (req, res) => {
-    if (req.method === 'POST') {
-        const { username, email, password } = req.body;
+app.use(cors());  // CORS muammosini hal qilish uchun
+app.use(express.json());  // JSON ma'lumotlarni qabul qilish uchun
 
-        if (!username || !email || !password) {
-            return res.status(400).json({ success: false, message: 'Hamma maydonlarni to‘ldiring!' });
+app.post('/send-login-data', (req, res) => {
+    const { username, email, password } = req.body;
+
+    if (!username || !email || !password) {
+        return res.status(400).json({ success: false, message: 'Barcha maydonlar to‘ldirilishi shart!' });
+    }
+
+    fs.readFile('./api/users.json', 'utf8', (err, data) => {
+        if (err) {
+            console.error('Faylni o‘qishda xatolik:', err);
+            return res.status(500).json({ success: false, message: 'Server xatosi' });
         }
 
-        const newUser = { username, email, password };
-        const filePath = path.join(__dirname, 'users.json');
-
         let users = [];
-        if (fs.existsSync(filePath)) {
-            const data = fs.readFileSync(filePath);
+        if (data) {
             users = JSON.parse(data);
         }
 
+        const newUser = { username, email, password };
         users.push(newUser);
-        fs.writeFileSync(filePath, JSON.stringify(users, null, 2));
 
-        return res.status(200).json({ success: true, message: 'Foydalanuvchi qo‘shildi' });
-    } else {
-        return res.status(405).json({ success: false, message: 'Faqat POST ruxsat etiladi' });
-    }
-};
+        fs.writeFile('./api/users.json', JSON.stringify(users, null, 2), (err) => {
+            if (err) {
+                console.error('Faylga yozishda xatolik:', err);
+                return res.status(500).json({ success: false, message: 'Ma’lumot saqlanmadi' });
+            }
+
+            res.json({ success: true, message: 'Ro‘yxatdan o‘tish muvaffaqiyatli!' });
+        });
+    });
+});
+
+app.listen(port, () => {
+    console.log(`Server http://localhost:${port} da ishlayapti`);
+});
