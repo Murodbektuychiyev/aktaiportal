@@ -1,17 +1,7 @@
 {
-  "version": 2,
-  "builds": [
-    { "src": "api/**/*.js", "use": "@vercel/node" },
-    {
-      "src": "**/*.{html,js,css,png,jpg,svg,ico,webp,woff,woff2,ttf,eot}",
-      "use": "@vercel/static"
-    }
-  ],
-  "routes": [
-    { "src": "/api/(.*)", "dest": "/api/$1.js" },
-    { "src": "/(.*)",      "dest": "/$1" }
-  ],
-  "env": {
-    "JWT_SECRET": "@jwt_secret"
-  }
+  "rewrites": [
+    { "source": "/send-login-data", "destination": "/api/server" },
+    { "source": "/api/send-reset-link", "destination": "/api/serverforgot" },
+    { "source": "/api/login", "destination": "/api/enterserver" }
+  ]
 }
